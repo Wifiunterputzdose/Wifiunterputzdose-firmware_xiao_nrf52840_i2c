@@ -185,7 +185,7 @@ static const uint8_t SCK = PIN_SPI_SCK;
 #define PIN_WIRE_SCL D5
 #elif !defined(GPS_L76K)
 // If D6 and D7 are free, I2C is probably the most versatile assignment
-//Test
+//Test1
 #define PIN_WIRE_SDA D6
 #define PIN_WIRE_SCL D7
 #else
