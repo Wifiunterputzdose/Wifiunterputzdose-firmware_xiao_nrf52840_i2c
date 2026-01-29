@@ -27,6 +27,7 @@
 #include "Sensor/CGRadSensSensor.h"
 #include "Sensor/RCWL9620Sensor.h"
 #include "Sensor/nullSensor.h"
+#include "Sensor/DS18B20Sensor.h"
 
 namespace graphics
 {
@@ -121,6 +122,8 @@ extern void drawCommonHeader(OLEDDisplay *display, int16_t x, int16_t y, const c
 #include "Sensor/PCT2075Sensor.h"
 #endif
 
+DS18B20Sensor ds18b20Sensor;
+
 #endif
 #ifdef T1000X_SENSOR_EN
 #include "Sensor/T1000xSensor.h"
@@ -137,6 +140,13 @@ extern void drawCommonHeader(OLEDDisplay *display, int16_t x, int16_t y, const c
 #if __has_include(<BH1750_WE.h>)
 #include "Sensor/BH1750Sensor.h"
 #endif
+
+/*
+#if __has_include(<DS18B20Sensor.h>)
+#include "Sensor/DS18B20Sensor.h"
+#endif
+*/
+
 
 #define FAILED_STATE_SENSOR_READ_MULTIPLIER 10
 #define DISPLAY_RECEIVEID_MEASUREMENTS_ON_SCREEN true
@@ -254,6 +264,12 @@ void EnvironmentTelemetryModule::i2cScanFinished(ScanI2C *i2cScanner)
     addSensor<MLX90632Sensor>(i2cScanner, ScanI2C::DeviceType::MLX90632);
 #endif
 
+/*
+#if __has_include(<DS18B20Sensor.h>)
+    addSensor<DS18B20Sensor>(i2cScanner, ScanI2C::DeviceType::ds18b20Sensor);
+#endif
+*/
+
 #if __has_include(<Adafruit_BMP3XX.h>)
     addSensor<BMP3XXSensor>(i2cScanner, ScanI2C::DeviceType::BMP_3XX);
 #endif
@@ -321,6 +337,9 @@ int32_t EnvironmentTelemetryModule::runOnce()
                 result = ina3221Sensor.runOnce();
             if (max17048Sensor.hasSensor())
                 result = max17048Sensor.runOnce();
+            if (ds18b20Sensor.hasSensor()) {
+                result = ds18b20Sensor.runOnce();
+            }
                 // this only works on the wismesh hub with the solar option. This is not an I2C sensor, so we don't need the
                 // sensormap here.
 #ifdef HAS_RAKPROT
@@ -582,6 +601,10 @@ bool EnvironmentTelemetryModule::getEnvironmentTelemetry(meshtastic_Telemetry *m
     }
     if (max17048Sensor.hasSensor()) {
         valid = valid && max17048Sensor.getMetrics(m);
+        hasSensor = true;
+    }
+    if (ds18b20Sensor.hasSensor()) {
+        valid = valid && ds18b20Sensor.getMetrics(m);
         hasSensor = true;
     }
 #endif

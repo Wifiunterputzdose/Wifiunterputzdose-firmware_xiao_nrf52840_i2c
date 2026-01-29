@@ -194,6 +194,13 @@ static const uint8_t SCK = PIN_SPI_SCK;
 #define PIN_WIRE_SCL (16)
 #endif
 
+/* XIAO nrf52840 + Wio SX1262 + Grove Shield */
+/* Attention only if Button D0 ist no assembled!!! 
+   Keep in mind that a pullup resistor of 10k against 3V3 is wired
+*/
+
+#define PIN_WIRE_DS18B20 D0 
+
 static const uint8_t SDA = PIN_WIRE_SDA;
 static const uint8_t SCL = PIN_WIRE_SCL;
 
@@ -207,7 +214,7 @@ static const uint8_t SCL = PIN_WIRE_SCL;
  */
 
 #if !defined(GPS_L76K) && !defined(SEEED_XIAO_WIO_BTB) && !defined(XIAO_BLE_LEGACY_PINOUT)
-#define BUTTON_PIN D0
+//#define BUTTON_PIN D0
 #endif
 
 #ifdef __cplusplus
