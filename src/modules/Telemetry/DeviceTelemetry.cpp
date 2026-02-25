@@ -185,6 +185,9 @@ bool DeviceTelemetryModule::sendTelemetry(NodeNum dest, bool phoneOnly)
     } else {
         LOG_INFO("Send packet to mesh");
         service->sendToMesh(p, RX_SRC_LOCAL, true);
+
+        notifyDeviceTelemetrySent();
+
     }
     return true;
 }

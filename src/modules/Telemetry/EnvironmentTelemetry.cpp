@@ -21,6 +21,12 @@
 #include "target_specific.h"
 #include <OLEDDisplay.h>
 
+// ===============================
+// TESTZWECK: Force EnvironmentTelemetry flag
+// Nur für SystemOff Test ohne Sensor!
+// ===============================
+#define TESTZWECK
+
 #if !MESHTASTIC_EXCLUDE_ENVIRONMENTAL_SENSOR_EXTERNAL
 
 // Sensors
@@ -649,7 +655,28 @@ bool EnvironmentTelemetryModule::sendTelemetry(NodeNum dest, bool phoneOnly)
     m.which_variant = meshtastic_Telemetry_environment_metrics_tag;
     m.time = getTime();
 
-    if (getEnvironmentTelemetry(&m)) {
+    #ifdef TESTZWECK
+    #ifdef ARCH_NRF52
+    bool hasEnv = getEnvironmentTelemetry(&m);
+    if (!hasEnv) {
+        LOG_INFO("TESTZWECK: No environment sensor detected — forcing notifyEnvironmentTelemetrySent()");
+        notifyEnvironmentTelemetrySent();
+        return false;
+    }
+    #endif
+    #endif
+
+    if (
+        #ifdef TESTZWECK
+    #ifdef ARCH_NRF52
+        hasEnv
+    #else
+        getEnvironmentTelemetry(&m)
+    #endif
+    #else
+        getEnvironmentTelemetry(&m)
+    #endif
+    ) {
         LOG_INFO("Send: barometric_pressure=%f, current=%f, gas_resistance=%f, relative_humidity=%f, temperature=%f",
                  m.variant.environment_metrics.barometric_pressure, m.variant.environment_metrics.current,
                  m.variant.environment_metrics.gas_resistance, m.variant.environment_metrics.relative_humidity,
@@ -686,6 +713,9 @@ bool EnvironmentTelemetryModule::sendTelemetry(NodeNum dest, bool phoneOnly)
             LOG_INFO("Send packet to mesh");
             service->sendToMesh(p, RX_SRC_LOCAL, true);
 
+            notifyEnvironmentTelemetrySent();
+
+        #ifndef ARCH_NRF52
             if (config.device.role == meshtastic_Config_DeviceConfig_Role_SENSOR && config.power.is_power_saving) {
                 meshtastic_ClientNotification *notification = clientNotificationPool.allocZeroed();
                 notification->level = meshtastic_LogRecord_Level_INFO;
@@ -699,6 +729,7 @@ bool EnvironmentTelemetryModule::sendTelemetry(NodeNum dest, bool phoneOnly)
                 LOG_DEBUG("Start next execution in 5s, then sleep");
                 setIntervalFromNow(FIVE_SECONDS_MS);
             }
+        #endif
         }
         return true;
     }

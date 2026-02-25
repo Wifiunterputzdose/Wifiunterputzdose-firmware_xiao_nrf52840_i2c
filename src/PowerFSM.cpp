@@ -19,6 +19,16 @@
 #include "sleep.h"
 #include "target_specific.h"
 
+#ifdef ARCH_NRF52
+static bool oneShotSleepArmed = false;
+static uint32_t oneShotStartMs = 0;
+
+static bool deviceTelemetrySent = false;
+static bool environmentTelemetrySent = false;
+#endif
+
+void enterSystemOff();
+
 #if HAS_WIFI && !defined(ARCH_PORTDUINO) || defined(MESHTASTIC_EXCLUDE_WIFI)
 #include "mesh/wifi/WiFiAPClient.h"
 #endif
@@ -238,6 +248,29 @@ static void onIdle()
         // If we got here, we are in the wrong state - we should be in powered, let that state handle things
         powerFSM.trigger(EVENT_POWER_CONNECTED);
     }
+
+    #ifdef ARCH_NRF52
+        if (oneShotSleepArmed) {
+
+            uint32_t btTimeoutMs =
+                Default::getConfiguredOrDefaultMs(config.power.wait_bluetooth_secs, default_wait_bluetooth_secs);
+
+            if (millis() - oneShotStartMs > btTimeoutMs) {
+                LOG_INFO("OneShot complete → entering SYSTEMOFF");
+
+                //Test hinterher löschen
+                for (int i = 0; i < 6; i++) {
+                 digitalWrite(LED_BUILTIN, HIGH);
+                delay(100);
+                digitalWrite(LED_BUILTIN, LOW);
+                delay(100);
+                }
+                //
+                enterSystemOff();
+
+            }
+        }
+    #endif
 }
 
 static void bootEnter()
@@ -406,3 +439,47 @@ void PowerFSM_setup()
     powerFSM.run_machine(); // run one iteration of the state machine, so we run our on enter tasks for the initial DARK state
 }
 #endif
+
+void notifyDeviceTelemetrySent()
+{
+#ifdef ARCH_NRF52
+    
+    if (config.device.role != meshtastic_Config_DeviceConfig_Role_SENSOR)
+        return;
+
+    deviceTelemetrySent = true;
+
+    if (config.device.role == meshtastic_Config_DeviceConfig_Role_SENSOR &&
+        deviceTelemetrySent &&
+        environmentTelemetrySent &&
+        !oneShotSleepArmed)
+    {
+        oneShotSleepArmed = true;
+        oneShotStartMs = millis();
+    }
+#endif
+}
+
+void notifyEnvironmentTelemetrySent()
+{
+#ifdef ARCH_NRF52
+    
+    if (config.device.role != meshtastic_Config_DeviceConfig_Role_SENSOR)
+        return;
+
+    environmentTelemetrySent = true;
+
+    if (config.device.role == meshtastic_Config_DeviceConfig_Role_SENSOR &&
+        deviceTelemetrySent &&
+        environmentTelemetrySent &&
+        !oneShotSleepArmed)
+    {
+        oneShotSleepArmed = true;
+        oneShotStartMs = millis();
+        LOG_INFO("OneShot armed after both telemetry sent");
+    }
+#endif
+}
+
+
+

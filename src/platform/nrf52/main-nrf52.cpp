@@ -18,6 +18,20 @@
 
 #include <hal/nrf_lpcomp.h>
 
+#ifndef ARCH_NRF52
+#error "ARCH_NRF52 NOT defined!"
+#endif
+
+// #includeRadioLibinterface.h to use standby and sleep command in enterSystemeOff() for nrf52 
+#ifdef ARCH_NRF52 
+#include "RadioLibInterface.h"
+
+#ifndef WAKE_PIN
+#define WAKE_PIN D0   // Change wake-pin if needed
+#endif
+
+#endif
+
 #ifdef BQ25703A_ADDR
 #include "BQ25713.h"
 #endif
@@ -242,10 +256,32 @@ void nrf52Setup()
     pinMode(ADC_V, INPUT);
 #endif
 
+#ifdef ARCH_NRF52
+    uint32_t resetReason = NRF_POWER->RESETREAS;
+
+    if (resetReason & POWER_RESETREAS_OFF_Msk) {
+        LOG_INFO("Wake from SYSTEMOFF detected");
+    }
+
+    if (resetReason & POWER_RESETREAS_RESETPIN_Msk) {
+        LOG_INFO("Reset by PIN");
+    }
+
+    if (resetReason & POWER_RESETREAS_DOG_Msk) {
+        LOG_INFO("Watchdog reset");
+    }
+
+    NRF_POWER->RESETREAS = 0xFFFFFFFF;  // clear flags
+#endif
+
     uint32_t why = NRF_POWER->RESETREAS;
     // per
     // https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.nrf52832.ps.v1.1%2Fpower.html
     LOG_DEBUG("Reset reason: 0x%x", why);
+
+    // --- TESTZWECK ---
+    LOG_INFO("RESETREAS raw register: 0x%lx", NRF_POWER->RESETREAS);
+    // -----------------
 
 #ifdef USE_SEMIHOSTING
     nrf52InitSemiHosting();
@@ -441,3 +477,82 @@ void enterDfuMode()
     enterUf2Dfu();
 #endif
 }
+
+#ifdef ARCH_NRF52
+void enterSystemOff() {
+
+/*
+  // sleeping of SX1262 
+  if (RadioLibInterface::instance) {
+    //RadioLibInterface::instance->setStandby();
+    RadioLibInterface::instance->sleep();
+  }
+  delay(5);
+
+  // Wake-Pin config before sleep
+  pinMode(WAKE_PIN, INPUT_PULLUP);
+  uint32_t pin = g_ADigitalPinMap[WAKE_PIN];
+
+  // clear old SENSE bits
+  NRF_GPIO->PIN_CNF[pin] &= ~GPIO_PIN_CNF_SENSE_Msk;
+
+  // Wake by LOW signal on D0
+  NRF_GPIO->PIN_CNF[pin] |= (GPIO_PIN_CNF_SENSE_Low << GPIO_PIN_CNF_SENSE_Pos);
+
+  NRF_GPIO->LATCH = NRF_GPIO->LATCH;
+  delay(10);
+
+  setBluetoothEnable(false);
+  delay(10);
+
+  LOG_INFO("Entering SYSTEM OFF now!");
+  delay(50);  // ganz wichtig! UART noch flushen
+
+  LOG_INFO("D0 state before sleep: %d", digitalRead(WAKE_PIN));
+  delay(200);
+
+  Wire.end();
+  SPI.end();
+  //Serial.end();
+  //NRF_POWER->SYSTEMOFF = 1;
+  __DSB();
+
+  uint32_t err = sd_power_system_off();
+  if (err != NRF_SUCCESS) {
+    NRF_POWER->SYSTEMOFF = 1;
+   }
+
+  while (1);
+  */
+
+  if (RadioLibInterface::instance) {
+    RadioLibInterface::instance->sleep();
+  }
+  delay(5);
+  // not necessary , could be deleted because System_off turns off spi, wire anyway
+  Wire.end();
+  SPI.end();
+  delay(10);
+
+  pinMode(WAKE_PIN, INPUT_PULLUP);
+  uint32_t pin = g_ADigitalPinMap[WAKE_PIN];
+
+  NRF_GPIO->PIN_CNF[pin] &= ~GPIO_PIN_CNF_SENSE_Msk;
+  NRF_GPIO->PIN_CNF[pin] |= (GPIO_PIN_CNF_SENSE_Low << GPIO_PIN_CNF_SENSE_Pos);
+
+  NRF_GPIO->LATCH = NRF_GPIO->LATCH;
+
+  delay(10);
+  pinMode(LED_RED, INPUT);
+  pinMode(LED_GREEN, INPUT);
+  delay(10);
+
+  LOG_INFO("Entering SYSTEM OFF now!");
+  delay(50);
+
+  __DSB();
+  NRF_POWER->SYSTEMOFF = 1;
+  while (1);
+
+}
+#endif

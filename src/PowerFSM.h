@@ -48,4 +48,12 @@ extern Fsm powerFSM;
 extern State stateON, statePOWER, stateSERIAL, stateDARK;
 
 void PowerFSM_setup();
+
+void notifyDeviceTelemetrySent();
+void notifyEnvironmentTelemetrySent();
+
+#ifdef ARCH_NRF52
+void armOneShotSleep();
+#endif
+
 #endif
