@@ -315,6 +315,7 @@ NodeDB::NodeDB()
 #endif
 
     resetRadioConfig(); // If bogus settings got saved, then fix them
+
     // nodeDB->LOG_DEBUG("region=%d, NODENUM=0x%x, dbsize=%d", config.lora.region, myNodeInfo.my_node_num, numMeshNodes);
 
     // Uncomment below to always enable UDP broadcasts

@@ -139,6 +139,7 @@ void MeshService::reloadConfig(int saveWhat)
 
     configChanged.notifyObservers(NULL); // This will cause radio hardware to change freqs etc
     nodeDB->saveToDisk(saveWhat);
+    
 }
 
 /// The owner User record just got updated, update our node DB and broadcast the info into the mesh

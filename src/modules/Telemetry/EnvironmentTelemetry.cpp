@@ -19,13 +19,14 @@
 #include "power.h"
 #include "sleep.h"
 #include "target_specific.h"
-#include <OLEDDisplay.h>
 
 // ===============================
 // TESTZWECK: Force EnvironmentTelemetry flag
-// Nur für SystemOff Test ohne Sensor!
+// Setzen um SystemOff auch ohne Sensor zu testen
 // ===============================
 #define TESTZWECK
+
+#include <OLEDDisplay.h>
 
 #if !MESHTASTIC_EXCLUDE_ENVIRONMENTAL_SENSOR_EXTERNAL
 
@@ -655,8 +656,8 @@ bool EnvironmentTelemetryModule::sendTelemetry(NodeNum dest, bool phoneOnly)
     m.which_variant = meshtastic_Telemetry_environment_metrics_tag;
     m.time = getTime();
 
-    #ifdef TESTZWECK
-    #ifdef ARCH_NRF52
+    #ifdef TESTZWECK // das wurde als Test erstellt, sodass Syste,_OFF ausgeführt wird, obwohl der DS18B20 nicht angeschlossen ist!
+    #ifdef ARCH_NRF52 // das muss ebenfalls hinterher gelsöcht werden!
     bool hasEnv = getEnvironmentTelemetry(&m);
     if (!hasEnv) {
         LOG_INFO("TESTZWECK: No environment sensor detected — forcing notifyEnvironmentTelemetrySent()");
@@ -667,8 +668,8 @@ bool EnvironmentTelemetryModule::sendTelemetry(NodeNum dest, bool phoneOnly)
     #endif
 
     if (
-        #ifdef TESTZWECK
-    #ifdef ARCH_NRF52
+        #ifdef TESTZWECK //das muss nachher auch gelöscht werden, wurde nur eingefügt das syste,_off ohne sensor funzt
+    #ifdef ARCH_NRF52 //das auch, wurde nur eingefügt das syste,_off ohne sensor funzt
         hasEnv
     #else
         getEnvironmentTelemetry(&m)
