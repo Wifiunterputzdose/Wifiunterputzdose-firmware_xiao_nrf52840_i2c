@@ -8,6 +8,7 @@
 #include "mesh/mesh-pb-constants.h"
 #include <bluefruit.h>
 #include <utility/bonding.h>
+
 static BLEService meshBleService = BLEService(BLEUuid(MESH_SERVICE_UUID_16));
 static BLECharacteristic fromNum = BLECharacteristic(BLEUuid(FROMNUM_UUID_16));
 static BLECharacteristic fromRadio = BLECharacteristic(BLEUuid(FROMRADIO_UUID_16));
@@ -32,6 +33,11 @@ static uint8_t toRadioBytes[meshtastic_ToRadio_size];
 static uint8_t lastToRadio[MAX_TO_FROM_RADIO_SIZE];
 
 static uint16_t connectionHandle;
+
+//TESTZWECK
+// löschen wenn nicht funktionsfähig
+volatile bool bleIsConnected = false;
+//
 
 class BluetoothPhoneAPI : public PhoneAPI
 {
@@ -60,6 +66,12 @@ void onConnect(uint16_t conn_handle)
     // Get the reference to current connection
     BLEConnection *connection = Bluefruit.Connection(conn_handle);
     connectionHandle = conn_handle;
+
+    //TESTZWECK
+    //löschen
+    bleIsConnected = true;
+    //
+    
     char central_name[32] = {0};
     connection->getPeerName(central_name, sizeof(central_name));
     LOG_INFO("BLE Connected to %s", central_name);
@@ -75,6 +87,10 @@ void onConnect(uint16_t conn_handle)
  */
 void onDisconnect(uint16_t conn_handle, uint8_t reason)
 {
+    //TESTZWECK
+    //löschen
+    bleIsConnected = false;
+    //
     LOG_INFO("BLE Disconnected, reason = 0x%x", reason);
     if (bluetoothPhoneAPI) {
         bluetoothPhoneAPI->close();

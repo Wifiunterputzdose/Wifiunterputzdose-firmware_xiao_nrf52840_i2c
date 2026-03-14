@@ -19,14 +19,13 @@
 #include "power.h"
 #include "sleep.h"
 #include "target_specific.h"
+#include <OLEDDisplay.h>
 
 // ===============================
 // TESTZWECK: Force EnvironmentTelemetry flag
-// Setzen um SystemOff auch ohne Sensor zu testen
+// Nur für SystemOff Test ohne Sensor!
 // ===============================
 #define TESTZWECK
-
-#include <OLEDDisplay.h>
 
 #if !MESHTASTIC_EXCLUDE_ENVIRONMENTAL_SENSOR_EXTERNAL
 

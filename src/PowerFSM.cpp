@@ -19,6 +19,13 @@
 #include "sleep.h"
 #include "target_specific.h"
 
+//TESTZWECK
+//löschen
+#ifdef ARCH_NRF52
+extern volatile bool bleIsConnected;  // Schritt 3: BLE-Verbindungsstatus
+#endif
+//
+
 #ifdef ARCH_NRF52
 static bool oneShotSleepArmed = false;
 static uint32_t oneShotStartMs = 0;
@@ -256,16 +263,25 @@ static void onIdle()
                 Default::getConfiguredOrDefaultMs(config.power.wait_bluetooth_secs, default_wait_bluetooth_secs);
 
             if (millis() - oneShotStartMs > btTimeoutMs) {
+
+                //TESTZWECK
+                //löschen
+                if (bleIsConnected) {
+                    LOG_INFO("BLE connected → stay awake");
+                    return;  // SystemOff verschieben, solange BLE verbunden ist
+                }
+                //
+
                 LOG_INFO("OneShot complete → entering SYSTEMOFF");
 
-                //Test hinterher löschen
+                //let the red led blinking to visualize the system_off (deep sleep)
                 for (int i = 0; i < 6; i++) {
                  digitalWrite(LED_BUILTIN, HIGH);
                 delay(100);
                 digitalWrite(LED_BUILTIN, LOW);
                 delay(100);
                 }
-                //
+
                 enterSystemOff();
 
             }
