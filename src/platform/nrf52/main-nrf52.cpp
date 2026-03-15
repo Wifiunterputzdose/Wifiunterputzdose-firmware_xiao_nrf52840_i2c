@@ -256,27 +256,6 @@ void nrf52Setup()
     pinMode(ADC_V, INPUT);
 #endif
 
-
-//TESTZWECK
-/*
-#ifdef ARCH_NRF52
-    uint32_t resetReason = NRF_POWER->RESETREAS;
-
-    if (resetReason & POWER_RESETREAS_OFF_Msk) {
-        LOG_INFO("Wake from SYSTEMOFF detected");
-    }
-
-    if (resetReason & POWER_RESETREAS_RESETPIN_Msk) {
-        LOG_INFO("Reset by PIN");
-    }
-
-    if (resetReason & POWER_RESETREAS_DOG_Msk) {
-        LOG_INFO("Watchdog reset");
-    }
-
-    NRF_POWER->RESETREAS = 0xFFFFFFFF;  // clear flags
-#endif*/
-
     uint32_t why = NRF_POWER->RESETREAS;
     // per
     // https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.nrf52832.ps.v1.1%2Fpower.html

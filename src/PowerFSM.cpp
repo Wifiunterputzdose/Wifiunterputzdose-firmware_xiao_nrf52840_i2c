@@ -19,12 +19,9 @@
 #include "sleep.h"
 #include "target_specific.h"
 
-//TESTZWECK
-//löschen
 #ifdef ARCH_NRF52
-extern volatile bool bleIsConnected;  // Schritt 3: BLE-Verbindungsstatus
+extern volatile bool bleIsConnected;  // added variable to check BLE connection status
 #endif
-//
 
 #ifdef ARCH_NRF52
 static bool oneShotSleepArmed = false;
@@ -264,13 +261,10 @@ static void onIdle()
 
             if (millis() - oneShotStartMs > btTimeoutMs) {
 
-                //TESTZWECK
-                //löschen
                 if (bleIsConnected) {
                     LOG_INFO("BLE connected → stay awake");
-                    return;  // SystemOff verschieben, solange BLE verbunden ist
+                    return;  // skip SystemOff as long as BLE connected
                 }
-                //
 
                 LOG_INFO("OneShot complete → entering SYSTEMOFF");
 
