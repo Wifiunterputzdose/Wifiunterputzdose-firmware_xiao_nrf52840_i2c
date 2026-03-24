@@ -39,6 +39,8 @@
 #include <memory>
 #include <utility>
 
+#define FORCE_DS3231_RTC //added because MPU and DS3231 using the same address
+
 #ifdef ELECROW_ThinkNode_M5
 PCA9557 io(0x18, &Wire);
 #endif
@@ -652,6 +654,31 @@ void setup()
 #endif
     auto rtc_info = i2cScanner->firstRTC();
     rtc_found = rtc_info.type != ScanI2C::DeviceType::NONE ? rtc_info.address : rtc_found;
+
+    //TESTZWECK
+    //Hinterher löschen, wenn nicht funktioniert
+    // ===== RTC FALLBACK (DS3231 auf 0x68) =====
+    #ifdef FORCE_DS3231_RTC
+    if (rtc_info.type == ScanI2C::DeviceType::NONE) {
+
+        Wire.beginTransmission(0x68);
+        uint8_t error = Wire.endTransmission();
+
+        if (error == 0) 
+        {
+            LOG_WARN("RTC not recognized, but i2c answere should be ds3231");
+
+            rtc_found.address = 0x68;
+            rtc_found.port = ScanI2C::I2CPort::WIRE1;  // wichtig laut deinem Log
+
+            LOG_INFO("RTC (forced) addr=0x%02X port=%d",
+            rtc_found.address,
+            rtc_found.port
+            );
+        }
+    } 
+    #endif  
+    //
 
     auto kb_info = i2cScanner->firstKeyboard();
 

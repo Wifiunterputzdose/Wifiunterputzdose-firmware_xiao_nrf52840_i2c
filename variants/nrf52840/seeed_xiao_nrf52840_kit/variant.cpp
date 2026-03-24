@@ -7,6 +7,10 @@
 #include <memory>
 #include <stddef.h>
 #include <stdint.h>
+
+//TESTZWECK
+#include <Wire.h>
+//
 const uint32_t g_ADigitalPinMap[] = {
     // D0 .. D13
     2,  // D0  is P0.02 (A0)
@@ -80,6 +84,10 @@ const uint32_t g_ADigitalPinMap[] = {
 
 void initVariant()
 {
+    //TESTZWECK
+    //Wire.setPins(PIN_WIRE_SDA, PIN_WIRE_SCL);
+    //
+
     // Set BQ25101 ISET to 100mA instead of 50mA
     pinMode(HICHG, OUTPUT);
     digitalWrite(HICHG, LOW);

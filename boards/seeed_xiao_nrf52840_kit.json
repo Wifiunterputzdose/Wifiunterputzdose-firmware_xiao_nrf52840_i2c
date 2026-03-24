@@ -24,6 +24,7 @@
       "settings_addr": "0xFF000"
     }
   },
+
   "connectivity": ["bluetooth"],
   "debug": {
     "jlink_device": "nRF52840_xxAA",

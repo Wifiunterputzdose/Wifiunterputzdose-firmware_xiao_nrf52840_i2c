@@ -655,7 +655,7 @@ bool EnvironmentTelemetryModule::sendTelemetry(NodeNum dest, bool phoneOnly)
     m.which_variant = meshtastic_Telemetry_environment_metrics_tag;
     m.time = getTime();
 
-    #ifdef TESTZWECK // das wurde als Test erstellt, sodass Syste,_OFF ausgeführt wird, obwohl der DS18B20 nicht angeschlossen ist!
+    #ifdef TESTZWECK // das wurde als Test erstellt, sodass System_OFF ausgeführt wird, obwohl der DS18B20 nicht angeschlossen ist!
     #ifdef ARCH_NRF52 // das muss ebenfalls hinterher gelsöcht werden!
     bool hasEnv = getEnvironmentTelemetry(&m);
     if (!hasEnv) {
